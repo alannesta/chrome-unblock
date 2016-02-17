@@ -46,8 +46,11 @@ function setup_pac_data(proxy_prot_1, proxy_addr_1,
 function setup_proxy() {
     console.group('to set up proxy');
 
-    var proxy_server_proc = unblock_youku.default_proxy_server_proc;
-    var proxy_server_addr = unblock_youku.default_proxy_server_addr;
+    //var proxy_server_proc = unblock_youku.default_proxy_server_proc;
+    //var proxy_server_addr = unblock_youku.default_proxy_server_addr;
+    var proxy_server_proc = 'HTTP';
+    var proxy_server_addr = '127.0.0.1:8888';
+
     var backup_proxy_server_proc = unblock_youku.backup_proxy_server_proc;
     var backup_proxy_server_addr = unblock_youku.backup_proxy_server_addr;
 

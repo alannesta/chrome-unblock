@@ -150,6 +150,7 @@ function static_responses(client_request, client_response, pac_file_content) {
             'Content-Length': '113',
             'Cache-Control': 'public, max-age=2592000'
         });
+        console.log('static_response ---> forging crossdomain.xml ', client_response);
         client_response.end('<?xml version="1.0" encoding="UTF-8"?>\n' +
                 '<cross-domain-policy><allow-access-from domain="*"/></cross-domain-policy>');
         return;

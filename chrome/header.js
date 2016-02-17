@@ -21,6 +21,7 @@
 
 
 function header_modifier(details) {
+    console.log(details);
     console.log('modify headers of ' + details.url);
 
     details.requestHeaders.push({

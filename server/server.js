@@ -124,12 +124,19 @@ function http_req_handler(client_request, client_response) {
                 + client_request.method + ' ' + client_request.url.underline);
     }
 
-    if ((client_request.url === '/proxy.pac' || client_request.url === '/pac.pac')
-            || (!shared_tools.string_starts_with(client_request.url, '/proxy'))) {
-        server_utils.static_responses(client_request, client_response, pac_file_content);
+    if ((client_request.url === '/proxy.pac' || client_request.url === '/pac.pac') || (!shared_tools.string_starts_with(client_request.url, '/proxy'))) {
+        console.log('client request url ', client_request.url);
+        console.log('send static_response');
+        server_utils.static_responses(client_request, client_response, pac_file_content);   // client_response ends here
     }
 
     var target = server_utils.get_real_target(client_request.url);
+
+    if (target.host) {
+        console.log(target.host);
+        console.log(target);
+    }
+
     if (!target.host) {
         client_response.writeHead(403, {
             'Cache-Control': 'public, max-age=14400'
@@ -149,6 +156,7 @@ function http_req_handler(client_request, client_response) {
 
 
     var proxy_request_headers = server_utils.filter_request_headers(client_request.headers);
+    console.log('pass all the checks, make request ---> ', proxy_request_headers);
     proxy_request_headers.Host = target.host;
     var proxy_request_options = {
         encoding: null, // disable auto `buffer.toString()` in package "request"
@@ -205,17 +213,26 @@ function http_req_handler(client_request, client_response) {
 
 
 if (cluster.isMaster) {
-    var num_CPUs = require('os').cpus().length;
-    // num_CPUs = 1;
+    //var num_CPUs = require('os').cpus().length;
+     num_CPUs = 1;
 
-    var i;
-    for (i = 0; i < num_CPUs; i++) {
-        cluster.fork();
-        // one note here
-        // the fork() in nodejs is not the same as the fork() in C
-        // fork() in nodejs will run the whole code from beginning
-        // not from where it is invoked
-    }
+    //var i;
+    //for (i = 0; i < num_CPUs; i++) {
+    //    cluster.fork();
+    //    // one note here
+    //    // the fork() in nodejs is not the same as the fork() in C
+    //    // fork() in nodejs will run the whole code from beginning
+    //    // not from where it is invoked
+    //}
+    var ubuku_server = http.createServer();
+    ubuku_server.on('request', http_req_handler);
+
+    ubuku_server.listen(local_port, '0.0.0.0').on('error', function(err) {
+        if (err.code === 'EADDRINUSE') {
+            util.error('[ub.uku.js] Port number is already in use! Exiting now...');
+            process.exit();
+        }
+    });
 
     cluster.on('listening', function(worker, addr_port) {
         // use ub.uku.js as keyword for searching in log files
@@ -251,16 +268,19 @@ if (cluster.isMaster) {
     }
 
 } else if (cluster.isWorker) {
-    var ubuku_server = http.createServer();
-    ubuku_server.on('request', http_req_handler);
-
-    ubuku_server.listen(local_port, '0.0.0.0').on('error', function(err) {
-        if (err.code === 'EADDRINUSE') {
-            util.error('[ub.uku.js] Port number is already in use! Exiting now...');
-            process.exit();
-        }
-    });
+    //var ubuku_server = http.createServer();
+    //ubuku_server.on('request', http_req_handler);
+	//
+    //ubuku_server.listen(local_port, '0.0.0.0').on('error', function(err) {
+    //    if (err.code === 'EADDRINUSE') {
+    //        util.error('[ub.uku.js] Port number is already in use! Exiting now...');
+    //        process.exit();
+    //    }
+    //});
+    console.log('worker process');
 }
+
+
 
 
 process.on('uncaughtException', function(err) {
